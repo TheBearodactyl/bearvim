@@ -1,0 +1,1 @@
+require("bearvim.core.init")
