@@ -5,8 +5,10 @@ return {
   { "lukas-reineke/indent-blankline.nvim", name = "ibl" },
   { "stevearc/conform.nvim" },
   { "tamago324/lir.nvim", event = "User DirOpened" },
+  { "nvim-tree/nvim-web-devicons", opt = true },
+  { "nvim-lualine/lualine.nvim" },
 
-  -- LSP and Treesitter
+  -- LSP + Treesitter
   { "williamboman/mason.nvim" },
   { "williamboman/mason-lspconfig.nvim" },
   { "neovim/nvim-lspconfig" },
@@ -26,5 +28,8 @@ return {
   { "saadparwaiz1/cmp_luasnip" },
 
   -- KeyMapping
-  { "folke/which-key.nvim", opts = {} },
+  { "folke/which-key.nvim" },
+
+  -- Git
+  { "lewis6991/gitsigns.nvim" },
 }
