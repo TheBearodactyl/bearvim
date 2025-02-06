@@ -41,6 +41,6 @@ require("bearvim.plugins.config.laravel").setup() -- Laravel
 require("bearvim.plugins.config.autopairs").setup()
 
 -- Folding
-require("bearvim.plugins.config.origami").setup()
+require("bearvim.plugins.config.ufo").setup()
 
 return M

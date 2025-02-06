@@ -45,5 +45,5 @@ return {
   { "lewis6991/gitsigns.nvim" },
 
   -- Folding
-  { "chrisgrieser/nvim-origami", event = "VeryLazy" },
+  { "kevinhwang91/nvim-ufo" },
 }

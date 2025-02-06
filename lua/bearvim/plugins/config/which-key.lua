@@ -22,30 +22,49 @@ end
 function M.setup()
   local wk = require("which-key")
 
+  local lsp_prefix = "<leader>l"
+  local laravel_prefix = "<leader>L"
+  local fold_prefix = "<leader>f"
+
   wk.add({
     {
       mode = "n",
-      { "<leader>l", group = "LSP" },
+      { lsp_prefix, group = "LSP" },
       { "<leader>L", group = "Laravel" },
+      { "<leader>f", group = "Fold" },
 
-      { "<leader>ld", vim.lsp.buf.definition, desc = "Go to definition" },
-      { "<leader>lD", vim.lsp.buf.declaration, desc = "Go to declaration" },
-      { "<leader>li", vim.lsp.buf.implementation, desc = "Go to implementation" },
-      { "<leader>lr", vim.lsp.buf.references, desc = "Show references" },
-      { "<leader>lh", vim.lsp.buf.hover, desc = "Hover" },
-      { "<leader>ls", vim.lsp.buf.signature_help, desc = "Signature help" },
-      { "<leader>lR", vim.lsp.buf.rename, desc = "Rename" },
-      { "<leader>la", vim.lsp.buf.code_action, desc = "Code action" },
-      { "<leader>lf", format_buffer, desc = "Format" },
+      -- LSP
+      { lsp_prefix .. "d", vim.lsp.buf.definition, desc = "Go to definition" },
+      { lsp_prefix .. "D", vim.lsp.buf.declaration, desc = "Go to declaration" },
+      { lsp_prefix .. "i", vim.lsp.buf.implementation, desc = "Go to implementation" },
+      { lsp_prefix .. "r", vim.lsp.buf.references, desc = "Show references" },
+      { lsp_prefix .. "h", vim.lsp.buf.hover, desc = "Hover" },
+      { lsp_prefix .. "s", vim.lsp.buf.signature_help, desc = "Signature help" },
+      { lsp_prefix .. "R", vim.lsp.buf.rename, desc = "Rename" },
+      { lsp_prefix .. "a", vim.lsp.buf.code_action, desc = "Code action" },
+      { lsp_prefix .. "f", format_buffer, desc = "Format" },
 
-      { "<leader>La", "<cmd>Laravel artisan<cr>", desc = "Laravel Artisan" },
-      { "<leader>Lr", "<cmd>Laravel routes<cr>", desc = "Laravel Routes" },
-      { "<leader>Lm", "<cmd>Laravel related<cr>", desc = "Laravel Related" },
+      -- Laravel
+      { laravel_prefix .. "a", "<cmd>Laravel artisan<cr>", desc = "Laravel Artisan" },
+      { laravel_prefix .. "r", "<cmd>Laravel routes<cr>", desc = "Laravel Routes" },
+      { laravel_prefix .. "m", "<cmd>Laravel related<cr>", desc = "Laravel Related" },
+
+      -- Folding
+      { fold_prefix .. "o", "zo", desc = "Open a fold at the cursor" },
+      { fold_prefix .. "c", "zc", desc = "Close a fold at the cursor" },
+      { fold_prefix .. "j", "zj", desc = "Move the cursor to the next fold" },
+      { fold_prefix .. "k", "zk", desc = "Move the cursor to the prev fold" },
+      { fold_prefix .. "O", "zO", desc = "Open all folds" },
+      { fold_prefix .. "C", "zM", desc = "Close all folds" },
+      { fold_prefix .. "x", "zd", desc = "Delete the fold at the cursor" },
+      { fold_prefix .. "X", "zE", desc = "Delete all folds" },
+      { fold_prefix .. "[", "[z", desc = "Move to the start of an open fold" },
+      { fold_prefix .. "]", "]z", desc = "Move to the end of an open fold" },
     },
     {
       mode = "v",
-      { "<leader>l", group = "LSP" },
-      { "<leader>lf", format_range, desc = "Format selection" },
+      { lsp_prefix, group = "LSP" },
+      { lsp_prefix .. "f", format_range, desc = "Format selection" },
     },
   })
 end
