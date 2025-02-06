@@ -14,6 +14,7 @@ function M.setup()
       yaml = { "prettier" },
       sh = { "shfmt" },
       rs = { "leptosfmt" },
+      blade = { "blade-formatter" },
     },
 
     formatters = {

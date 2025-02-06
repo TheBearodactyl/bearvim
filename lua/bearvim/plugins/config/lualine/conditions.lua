@@ -7,7 +7,7 @@ local conditions = {
 
   hide_in_width = function()
     return vim.o.columns > window_width_limit
-  end
+  end,
 }
 
 return conditions

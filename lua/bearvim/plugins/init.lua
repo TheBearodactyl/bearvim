@@ -1,3 +1,5 @@
+local deps = require("bearvim.plugins.deps")
+
 return {
   -- Misc
   { "catppuccin/nvim", name = "catppuccin", priority = 1000 },
@@ -6,7 +8,11 @@ return {
   { "stevearc/conform.nvim" },
   { "tamago324/lir.nvim", event = "User DirOpened" },
   { "nvim-tree/nvim-web-devicons", opt = true },
+
+  -- Interface
   { "nvim-lualine/lualine.nvim" },
+  { "akinsho/bufferline.nvim" },
+  { "ray-x/guihua.lua" },
 
   -- LSP + Treesitter
   { "williamboman/mason.nvim" },
@@ -17,6 +23,11 @@ return {
   { "windwp/nvim-autopairs", event = "InsertEnter", opts = {} },
   { "jay-babu/mason-null-ls.nvim" },
   { "nvim-treesitter/nvim-treesitter", build = ":TSUpdate" },
+
+  -- Languages/Frameworks
+  { "ray-x/go.nvim", ft = { "go", "gomod" }, build = ":lua require'go.install'.update_all_sync()" },
+  { "ricardoramirezr/blade-nav.nvim", ft = { "blade", "php" } },
+  { "adalessa/laravel.nvim", dependencies = deps.laravel_deps, event = "VeryLazy", cmd = { "Laravel" }, config = true },
 
   -- Completion
   { "hrsh7th/nvim-cmp" },
@@ -32,4 +43,7 @@ return {
 
   -- Git
   { "lewis6991/gitsigns.nvim" },
+
+  -- Folding
+  { "chrisgrieser/nvim-origami", event = "VeryLazy" },
 }

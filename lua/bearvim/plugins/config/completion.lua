@@ -1,91 +1,287 @@
 local M = {}
+M.methods = {}
 
-function M.setup()
-  require("luasnip.loaders.from_vscode").lazy_load()
+local has_words_before = function()
+  local line, col = unpack(vim.api.nvim_win_get_cursor(0))
+  return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
+end
+M.methods.has_words_before = has_words_before
+
+---@deprecated use M.methods.has_words_before instead
+M.methods.check_backspace = function()
+  return not has_words_before()
+end
+
+local T = function(str)
+  return vim.api.nvim_replace_termcodes(str, true, true, true)
+end
+
+local function feedkeys(key, mode)
+  vim.api.nvim_feedkeys(T(key), mode, true)
+end
+
+M.methods.feedkeys = feedkeys
+
+---when inside a snippet, seeks to the nearest luasnip field if possible, and checks if it is jumpable
+---@param dir number 1 for forward, -1 for backward; defaults to 1
+---@return boolean true if a jumpable luasnip field is found while inside a snippet
+local function jumpable(dir)
+  local luasnip_ok, luasnip = pcall(require, "luasnip")
+  if not luasnip_ok then
+    return false
+  end
+
+  local win_get_cursor = vim.api.nvim_win_get_cursor
+  local get_current_buf = vim.api.nvim_get_current_buf
+
+  ---sets the current buffer's luasnip to the one nearest the cursor
+  ---@return boolean true if a node is found, false otherwise
+  local function seek_luasnip_cursor_node()
+    if not luasnip.session.current_nodes then
+      return false
+    end
+
+    local node = luasnip.session.current_nodes[get_current_buf()]
+    if not node then
+      return false
+    end
+
+    local snippet = node.parent.snippet
+    local exit_node = snippet.insert_nodes[0]
+
+    local pos = win_get_cursor(0)
+    pos[1] = pos[1] - 1
+
+    if exit_node then
+      local exit_pos_end = exit_node.mark:pos_end()
+      if (pos[1] > exit_pos_end[1]) or (pos[1] == exit_pos_end[1] and pos[2] > exit_pos_end[2]) then
+        snippet:remove_from_jumplist()
+        luasnip.session.current_nodes[get_current_buf()] = nil
+        return false
+      end
+    end
+
+    node = snippet.inner_first:jump_into(1, true)
+    while node ~= nil and node.next ~= nil and node ~= snippet do
+      local n_next = node.next
+      local next_pos = n_next and n_next.mark:pos_begin()
+      local candidate = n_next ~= snippet and next_pos and (pos[1] < next_pos[1])
+        or (pos[1] == next_pos[1] and pos[2] < next_pos[2])
+
+      if n_next == nil or n_next == snippet.next then
+        snippet:remove_from_jumplist()
+        luasnip.session.current_nodes[get_current_buf()] = nil
+        return false
+      end
+
+      if candidate then
+        luasnip.session.current_nodes[get_current_buf()] = node
+        return true
+      end
+
+      local ok
+      ok, node = pcall(node.jump_from, node, 1, true)
+      if not ok then
+        snippet:remove_from_jumplist()
+        luasnip.session.current_nodes[get_current_buf()] = nil
+        return false
+      end
+    end
+
+    if exit_node then
+      luasnip.session.current_nodes[get_current_buf()] = snippet
+      return true
+    end
+
+    snippet:remove_from_jumplist()
+    luasnip.session.current_nodes[get_current_buf()] = nil
+    return false
+  end
+
+  if dir == -1 then
+    return luasnip.in_snippet() and luasnip.jumpable(-1)
+  else
+    return luasnip.in_snippet() and seek_luasnip_cursor_node() and luasnip.jumpable(1)
+  end
+end
+
+M.methods.jumpable = jumpable
+
+M.config = function()
+  local status_cmp_ok, cmp_types = pcall(require, "cmp.types.cmp")
+  if not status_cmp_ok then
+    return
+  end
+  local ConfirmBehavior = cmp_types.ConfirmBehavior
+  local SelectBehavior = cmp_types.SelectBehavior
 
   local cmp = require("cmp")
   local luasnip = require("luasnip")
-  local select_opts = { behavior = cmp.SelectBehavior.Select }
+  local cmp_window = require("cmp.config.window")
+  local cmp_mapping = require("cmp.config.mapping")
+  local cmp_autopairs = require("nvim-autopairs.completion.cmp")
+  local icons = require("bearvim.icons")
 
   cmp.setup({
+    enabled = function()
+      local buftype = vim.api.nvim_get_option_value("buftype", { buf = 0 })
+      if buftype == "prompt" then
+        return false
+      end
+      return true
+    end,
+    confirm_opts = {
+      behavior = ConfirmBehavior.Replace,
+      select = false,
+    },
+    completion = {
+      keyword_length = 1,
+    },
+    experimental = {
+      ghost_text = false,
+      native_menu = false,
+    },
+    formatting = {
+      fields = { "kind", "abbr", "menu" },
+      max_width = 0,
+      kind_icons = icons.kind,
+      format = function(entry, vim_item)
+        local max_width = 0
+        if max_width ~= 0 and #vim_item.abbr > max_width then
+          vim_item.abbr = string.sub(vim_item.abbr, 1, max_width - 1) .. "…"
+        end
+
+        --vim_item.kind = string.format("%s %s", icons.kind[vim_item.kind], vim_item.kind)
+        vim_item.menu = ({
+          nvim_lsp = "(LSP)",
+          emoji = "(Emoji)",
+          path = "(Path)",
+          calc = "(Calc)",
+          cmp_tabnine = "(Tabnine)",
+          vsnip = "(Snippet)",
+          luasnip = "(Snippet)",
+          buffer = "(Buffer)",
+          tmux = "(TMUX)",
+          copilot = "(Copilot)",
+          treesitter = "(TreeSitter)",
+          blade_nav = "(Blade Nav)",
+        })[entry.source.name]
+
+        return vim_item
+      end,
+    },
     snippet = {
       expand = function(args)
         luasnip.lsp_expand(args.body)
       end,
     },
-    sources = {
-      { name = "path" },
-      { name = "nvim_lsp", keyword_length = 1 },
-      { name = "buffer", keyword_length = 3 },
-      { name = "luasnip", keyword_length = 2 },
-    },
     window = {
-      documentation = cmp.config.window.bordered(),
-      completion = cmp.config.window.bordered(),
+      completion = {
+        -- winhighlight = "Normal:Pmenu,FloatBorder:Pmenu,Search:None",
+        col_offset = -3,
+        side_padding = 0,
+        border = "rounded",
+      },
+      documentation = cmp_window.bordered(),
     },
-    formatting = {
-      fields = { "menu", "abbr", "kind" },
-      format = function(entry, item)
-        local menu_icon = {
-          nvim_lsp = "λ",
-          luasnip = "",
-          buffer = "",
-          path = "🖫",
-        }
+    sources = {
+      { name = "copilot" },
+      {
+        name = "nvim_lsp",
+        entry_filter = function(entry, ctx)
+          local kind = require("cmp.types.lsp").CompletionItemKind[entry:get_kind()]
+          if kind == "Snippet" and ctx.prev_context.filetype == "java" then
+            return false
+          end
 
-        item.menu = menu_icon[entry.source.name]
-
-        return item
-      end,
+          return true
+        end,
+      },
+      { name = "path" },
+      { name = "luasnip" },
+      { name = "cmp_tabnine" },
+      { name = "nvim_lua" },
+      { name = "buffer" },
+      { name = "calc" },
+      { name = "emoji" },
+      { name = "treesitter" },
+      { name = "crates" },
+      { name = "tmux" },
+      { name = "blade-nav" },
     },
-    mapping = {
-      ["<Up>"] = cmp.mapping.select_prev_item(select_opts),
-      ["<Down"] = cmp.mapping.select_next_item(select_opts),
-      ["<C-p>"] = cmp.mapping.select_prev_item(select_opts),
-      ["<C-n"] = cmp.mapping.select_next_item(select_opts),
-      ["<C-u>"] = cmp.mapping.scroll_docs(-4),
-      ["<C-d>"] = cmp.mapping.scroll_docs(4),
-      ["<C-e>"] = cmp.mapping.abort(),
-      ["<C-y>"] = cmp.mapping.confirm({ select = true }),
-      ["<CR>"] = cmp.mapping.confirm({ select = false }),
-
-      ["<C-f>"] = cmp.mapping(function(fallback)
-        if luasnip.jumpable(1) then
+    mapping = cmp_mapping.preset.insert({
+      ["<C-k>"] = cmp_mapping(cmp_mapping.select_prev_item(), { "i", "c" }),
+      ["<C-j>"] = cmp_mapping(cmp_mapping.select_next_item(), { "i", "c" }),
+      ["<Down>"] = cmp_mapping(cmp_mapping.select_next_item({ behavior = SelectBehavior.Select }), { "i" }),
+      ["<Up>"] = cmp_mapping(cmp_mapping.select_prev_item({ behavior = SelectBehavior.Select }), { "i" }),
+      ["<C-d>"] = cmp_mapping.scroll_docs(-4),
+      ["<C-f>"] = cmp_mapping.scroll_docs(4),
+      ["<C-y>"] = cmp_mapping({
+        i = cmp_mapping.confirm({ behavior = ConfirmBehavior.Replace, select = false }),
+        c = function(fallback)
+          if cmp.visible() then
+            cmp.confirm({ behavior = ConfirmBehavior.Replace, select = false })
+          else
+            fallback()
+          end
+        end,
+      }),
+      ["<Tab>"] = cmp_mapping(function(fallback)
+        if cmp.visible() then
+          cmp.select_next_item()
+        elseif luasnip.expand_or_locally_jumpable() then
+          luasnip.expand_or_jump()
+        elseif jumpable(1) then
           luasnip.jump(1)
+        elseif has_words_before() then
+          fallback()
         else
           fallback()
         end
       end, { "i", "s" }),
-
-      ["<C-b>"] = cmp.mapping(function(fallback)
-        if luasnip.jumpable(-1) then
+      ["<S-Tab>"] = cmp_mapping(function(fallback)
+        if cmp.visible() then
+          cmp.select_prev_item()
+        elseif luasnip.jumpable(-1) then
           luasnip.jump(-1)
         else
           fallback()
         end
       end, { "i", "s" }),
-
-      ["<Tab>"] = cmp.mapping(function(fallback)
-        local col = vim.fn.col(".") - 1
-
+      ["<C-Space>"] = cmp_mapping.complete(),
+      ["<C-e>"] = cmp_mapping.abort(),
+      ["<CR>"] = cmp_mapping(function(fallback)
         if cmp.visible() then
-          cmp.select_next_item(select_opts)
-        elseif col == 0 or vim.fn.getline("."):sub(col, col):match("%s") then
-          fallback()
-        else
-          cmp.complete()
+          local confirm_opts = vim.deepcopy({
+            behavior = ConfirmBehavior.Replace,
+            select = false,
+          })
+          local is_insert_mode = function()
+            return vim.api.nvim_get_mode().mode:sub(1, 1) == "i"
+          end
+          if is_insert_mode() then
+            confirm_opts.behavior = ConfirmBehavior.Insert
+          end
+          local entry = cmp.get_selected_entry()
+          local is_copilot = entry and entry.source.name == "copilot"
+          if is_copilot then
+            confirm_opts.behavior = ConfirmBehavior.Replace
+            confirm_opts.select = true
+          end
+          if cmp.confirm(confirm_opts) then
+            return
+          end
         end
-      end, { "i", "s" }),
-
-      ["<S-Tab>"] = cmp.mapping(function(fallback)
-        if cmp.visible() then
-          cmp.select_prev_item(select_opts)
-        else
-          fallback()
-        end
-      end, { "i", "s" }),
-    },
+        fallback()
+      end),
+    }),
   })
+
+  cmp.event:on("confirm_done", cmp_autopairs.on_confirm_done())
+end
+
+function M.setup()
+  M.config()
 end
 
 return M

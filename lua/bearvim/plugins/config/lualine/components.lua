@@ -31,8 +31,13 @@ local function get_attached_tools(only_supported)
     local mason_tools = mason_registry.get_installed_packages()
 
     for _, tool in ipairs(mason_tools) do
-      if tool.spec.categories and (vim.tbl_contains(tool.spec.categories, "Formatter") or vim.tbl_contains(tool.spec.categories, "Linter")) then
-        if not only_supported or (tool.spec.supported_filetypes and vim.tbl_contains(tool.spec.supported_filetypes, ft)) then
+      if
+        tool.spec.categories
+        and (vim.tbl_contains(tool.spec.categories, "Formatter") or vim.tbl_contains(tool.spec.categories, "Linter"))
+      then
+        if
+          not only_supported or (tool.spec.supported_filetypes and vim.tbl_contains(tool.spec.supported_filetypes, ft))
+        then
           table.insert(tools, tool.name)
         end
       end
@@ -62,7 +67,7 @@ return {
     end,
     padding = { left = 0, right = 0 },
     color = {},
-    cond = nil
+    cond = nil,
   },
   branch = {
     "b:gitsigns_head",
@@ -72,7 +77,7 @@ return {
   filename = {
     "filename",
     color = {},
-    cond = nil
+    cond = nil,
   },
   diff = {
     "diff",
@@ -86,7 +91,7 @@ return {
     diff_color = {
       added = { fg = colors.green },
       modified = { fg = colors.yellow },
-      removed = { fg = colors.red }
+      removed = { fg = colors.red },
     },
     cond = nil,
   },
@@ -114,7 +119,7 @@ return {
   },
   lsp = {
     function()
-      local buf_clients = vim.lsp.get_clients { bufnr = 0 }
+      local buf_clients = vim.lsp.get_clients({ bufnr = 0 })
       if #buf_clients == 0 then
         return "LSP Inactive"
       end
@@ -122,7 +127,7 @@ return {
       return "[" .. get_attached_tools(true) .. "]"
     end,
     color = { gui = "bold" },
-    cond = conditions.hide_in_width
+    cond = conditions.hide_in_width,
   },
   location = { "location" },
   progress = {
@@ -157,6 +162,6 @@ return {
     end,
     padding = { left = 0, right = 0 },
     color = "$LProgress",
-    cond = nil
-  }
+    cond = nil,
+  },
 }

@@ -1,11 +1,20 @@
-local M = {}
-
 vim.cmd.colorscheme("catppuccin-mocha")
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 vim.o.number = true
-vim.o.relativenumber = true
-vim.opt.signcolumn = "number"
+vim.o.numberwidth = 4
+vim.opt.signcolumn = "yes"
 vim.opt.wrap = false
-
-return M
+vim.opt.termguicolors = true
+vim.opt.cmdheight = 1
+vim.opt.pumheight = 10
+vim.opt.showmode = false
+vim.opt.smartcase = true
+vim.opt.shiftwidth = 2
+vim.opt.tabstop = 2
+vim.opt.expandtab = true
+vim.opt.updatetime = 100
+vim.opt.undofile = true
+vim.opt.mouse = "a"
+vim.opt.conceallevel = 0
+vim.opt.foldmethod = "expr"

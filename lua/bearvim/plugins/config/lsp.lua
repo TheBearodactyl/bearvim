@@ -5,7 +5,7 @@ function M.setup()
 
   require("mason").setup()
   require("mason-lspconfig").setup({
-    ensure_installed = { "lua_ls" },
+    ensure_installed = { "lua_ls", "intelephense" },
     automatic_installation = true,
   })
 
@@ -17,7 +17,7 @@ function M.setup()
   end
 
   require("mason-lspconfig").setup_handlers({
-    function (server_name)
+    function(server_name)
       local ok, server_config = pcall(require, "bearvim.config.lsp." .. server_name)
       if ok then
         server_config.setup({

@@ -27,7 +27,20 @@ require("bearvim.plugins.config.completion").setup()
 -- LuaLine
 require("bearvim.plugins.config.lualine").setup()
 
+-- BufferLine
+require("bearvim.plugins.config.buffline").setup()
+
 -- Git
 require("bearvim.plugins.config.git").setup()
+
+-- Languages/Frameworks
+require("bearvim.plugins.config.gonvim").setup() -- Go
+require("bearvim.plugins.config.laravel").setup() -- Laravel
+
+-- Autopairs
+require("bearvim.plugins.config.autopairs").setup()
+
+-- Folding
+require("bearvim.plugins.config.origami").setup()
 
 return M

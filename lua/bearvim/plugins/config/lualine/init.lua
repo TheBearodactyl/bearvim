@@ -16,7 +16,7 @@ M.setup = function()
         components.mode,
       },
       lualine_b = {
-        components.branch
+        components.branch,
       },
       lualine_c = {
         components.diff,
@@ -25,7 +25,7 @@ M.setup = function()
         components.diagnostics,
         components.lsp,
         components.spaces,
-        components.filetype
+        components.filetype,
       },
       lualine_y = { components.location },
       lualine_z = {
@@ -55,7 +55,7 @@ M.setup = function()
       },
     },
     tabline = {},
-    extensions = {}
+    extensions = {},
   })
 end
 

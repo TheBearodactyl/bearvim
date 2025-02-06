@@ -1,4 +1,5 @@
 require("bearvim.core.lazy")
 require("bearvim.core.commands")
+require("bearvim.misc")
 require("bearvim.config.init")
 require("bearvim.plugins.config")
