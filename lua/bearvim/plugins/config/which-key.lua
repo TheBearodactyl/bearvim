@@ -1,7 +1,11 @@
 local M = {}
 
-local function format_buffer()
-  require("conform").format({ async = true, lsp_format = "fallback" })
+local function format_buffer(args)
+  if not args then
+    require("conform").format({ async = true, lsp_format = "fallback" })
+  else
+    require("conform").format(args)
+  end
 end
 
 local function format_range()
@@ -16,7 +20,7 @@ local function format_range()
     ["end"] = { end_line, end_col },
   }
 
-  require("conform").format({ async = true, lsp_format = "fallback", range = range })
+  format_buffer({ async = true, lsp_format = "fallback", range = range })
 end
 
 function M.setup()

@@ -5,6 +5,7 @@ require("bearvim.plugins.config.lsp").setup()
 
 -- Diagnostics
 require("bearvim.plugins.config.diagnostics").setup()
+require("bearvim.plugins.config.trouble").setup()
 
 -- Snippets
 require("bearvim.plugins.config.snippets").setup()
@@ -42,5 +43,8 @@ require("bearvim.plugins.config.autopairs").setup()
 
 -- Folding
 require("bearvim.plugins.config.ufo").setup()
+
+-- Discord RPC
+require("bearvim.plugins.config.cord").setup()
 
 return M

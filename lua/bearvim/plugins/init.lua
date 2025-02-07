@@ -1,4 +1,5 @@
 local deps = require("bearvim.plugins.deps")
+local cnds = require("bearvim.plugins.conditions")
 
 return {
   -- Misc
@@ -8,6 +9,7 @@ return {
   { "stevearc/conform.nvim" },
   { "tamago324/lir.nvim", event = "User DirOpened" },
   { "nvim-tree/nvim-web-devicons", opt = true },
+  { "vyfor/cord.nvim", cond = cnds.not_ft("python") },
 
   -- Interface
   { "nvim-lualine/lualine.nvim" },
@@ -23,6 +25,7 @@ return {
   { "windwp/nvim-autopairs", event = "InsertEnter", opts = {} },
   { "jay-babu/mason-null-ls.nvim" },
   { "nvim-treesitter/nvim-treesitter", build = ":TSUpdate" },
+  { "folke/trouble.nvim", cmd = "Trouble" },
 
   -- Languages/Frameworks
   { "ray-x/go.nvim", ft = { "go", "gomod" }, build = ":lua require'go.install'.update_all_sync()" },
